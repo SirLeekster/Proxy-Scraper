@@ -58,7 +58,7 @@
          </tooltip></Spinner>
       <Line endX="788.0" endY="-1.52587890625E-5" layoutX="14.0" layoutY="495.0" startX="-11.99999713897705" startY="-1.52587890625E-5" stroke="#a1a1a1" />
       <Label fx:id="lblThreads" layoutX="270.0" layoutY="516.0" text="Threads:" />
-      <Spinner fx:id="spinnerTimeout" layoutX="645.0" layoutY="512.0">
+      <Spinner fx:id="spinnerTimeout" editable="true" layoutX="645.0" layoutY="512.0">
          <tooltip>
             <Tooltip text="Set the time (in milliseconds) before a proxy is considered failed. If the proxy takes longer than this duration to respond, it will be marked as failed" />
          </tooltip></Spinner>
