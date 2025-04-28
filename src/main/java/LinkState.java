@@ -11,38 +11,29 @@ import java.util.PriorityQueue;
 
 public class LinkState {
     
-    // Node class: represents a vertex in the network
+    //node class
     static class Node {
         int nodeNumber;
         
         public Node(int nodeNumber) {
             this.nodeNumber = nodeNumber;
         }
-        
-        public int getNodeNumber() {
+
+        public int getNodeId() {
             return nodeNumber;
         }
         
-        @Override
-        public String toString() {
+        public String printNode() {
             return String.valueOf(nodeNumber);
         }
         
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Node node = (Node) o;
-            return nodeNumber == node.nodeNumber;
-        }
-        
-        @Override
-        public int hashCode() {
-            return Integer.hashCode(nodeNumber);
+        public boolean isSameNode(Node other) {
+            if (other == null) return false;
+            return this.nodeNumber == other.nodeNumber;
         }
     }
     
-    // Edge class: represents a link between nodes with an associated cost
+    //edge class
     static class Edge {
         Node destination;
         double cost;
@@ -53,8 +44,7 @@ public class LinkState {
         }
     }
     
-    // Entry class: helper for the priority queue in Dijkstra’s algorithm.
-    // It stores a node and the current known distance from the source.
+    //entry class for priority queue
     static class Entry implements Comparable<Entry> {
         Node node;
         double distance;
@@ -64,24 +54,20 @@ public class LinkState {
             this.distance = distance;
         }
         
-        @Override
         public int compareTo(Entry other) {
             return Double.compare(this.distance, other.distance);
         }
     }
     
-    // Graph representation: maps a node to its list of adjacent edges.
+    //graph is a map from node to list of edges
     Map<Node, List<Edge>> graph = new HashMap<>();
     
-    // Data structures for Dijkstra's algorithm:
-    // distances: shortest known distance from the source to each node.
-    // previous: used to reconstruct the shortest path.
     Map<Node, Double> distances = new HashMap<>();
     Map<Node, Node> previous = new HashMap<>();
     
     public static void main(String[] args) {
         if (args.length != 2) {
-            System.out.println("Usage: java LinkState <network file> <source node id>");
+            System.out.println("usage: java LinkState <network file> <source node id>");
             return;
         }
         String filename = args[0];
@@ -93,19 +79,17 @@ public class LinkState {
         ls.printPaths(sourceId);
     }
     
-    // Reads the network topology from a file.
-    // First line: number of nodes (n). Nodes are assumed to be 0,1,...,n-1.
-    // Each subsequent line: "n1 n2 cost", representing a bidirectional link.
+    //read the network file
     private void readFile(String filename) {
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             String line = br.readLine();
             if (line == null) {
-                System.out.println("Empty file");
+                System.out.println("empty file");
                 return;
             }
             int numNodes = Integer.parseInt(line.trim());
             
-            // Create nodes and initialize graph entries.
+            //create nodes
             Map<Integer, Node> nodeMap = new HashMap<>();
             for (int i = 0; i < numNodes; i++) {
                 Node node = new Node(i);
@@ -113,7 +97,7 @@ public class LinkState {
                 graph.put(node, new ArrayList<>());
             }
             
-            // Read each link and add edges in both directions (bidirectional)
+            //read each link
             while ((line = br.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
                 String[] parts = line.split("\\s+");
@@ -126,24 +110,22 @@ public class LinkState {
                 Node node2 = nodeMap.get(n2);
                 if (node1 == null || node2 == null) continue;
                 
-                // Add edge from node1 to node2 and vice versa.
                 graph.get(node1).add(new Edge(node2, cost));
                 graph.get(node2).add(new Edge(node1, cost));
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Error opening file: " + e);
+            System.out.println("error opening file: " + e);
         } catch (IOException e) {
-            System.out.println("Error reading file: " + e);
+            System.out.println("error reading file: " + e);
         }
     }
     
-    // Runs Dijkstra's algorithm from the source node.
+    //run dijkstra from source node
     private void runDijkstra(int sourceId) {
         PriorityQueue<Entry> pq = new PriorityQueue<>();
         
-        // Initialize distances: source node distance is 0; others are infinity.
         for (Node node : graph.keySet()) {
-            if (node.getNodeNumber() == sourceId) {
+            if (node.getNodeId() == sourceId) {
                 distances.put(node, 0.0);
                 pq.add(new Entry(node, 0.0));
             } else {
@@ -152,16 +134,13 @@ public class LinkState {
             previous.put(node, null);
         }
         
-        // Process nodes until the priority queue is empty.
         while (!pq.isEmpty()) {
             Entry currentEntry = pq.poll();
             Node currentNode = currentEntry.node;
             double currentDistance = currentEntry.distance;
             
-            // If this entry is outdated, skip it.
             if (currentDistance > distances.get(currentNode)) continue;
             
-            // Relax the edges.
             for (Edge edge : graph.get(currentNode)) {
                 Node neighbor = edge.destination;
                 double newDist = distances.get(currentNode) + edge.cost;
@@ -174,13 +153,13 @@ public class LinkState {
         }
     }
     
-    // Reconstructs and prints the shortest path from the source to every other node.
+    //print all paths from source
     private void printPaths(int sourceId) {
         for (Node node : graph.keySet()) {
-            if (node.getNodeNumber() == sourceId) continue;
+            if (node.getNodeId() == sourceId) continue;
             double cost = distances.get(node);
             if (cost == Double.MAX_VALUE) {
-                System.out.println("Node " + node + " is unreachable from source " + sourceId);
+                System.out.println("node " + node.printNode() + " is unreachable from source " + sourceId);
             } else {
                 List<Node> path = new ArrayList<>();
                 for (Node at = node; at != null; at = previous.get(at)) {
@@ -189,12 +168,12 @@ public class LinkState {
                 Collections.reverse(path);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < path.size(); i++) {
-                    sb.append(path.get(i));
+                    sb.append(path.get(i).printNode());
                     if (i < path.size() - 1) {
                         sb.append("->");
                     }
                 }
-                System.out.println("shortest path to node " + node + " is " + sb.toString() + " with cost " + cost);
+                System.out.println("shortest path to node " + node.printNode() + " is " + sb.toString() + " with cost " + cost);
             }
         }
     }
